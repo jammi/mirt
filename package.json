@@ -1,0 +1,43 @@
+{
+  "name": "MIRT",
+  "version": "0.0.0",
+  "description": "Multi-Interface Resource Transporter",
+  "keywords": [
+    "JSON",
+    "HTTP",
+    "Resource",
+    "Synchronization"
+  ],
+  "bugs": {
+    "url": "https://github.com/jammi/mirt/issues",
+    "email": "mirt@rsence.org"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Juha-Jarmo Heinonen",
+    "email": "o@rsence.org",
+    "url": "https://github.com/jammi"
+  },
+  "main": "./dist/mirt.js",
+  "repository": "github:jammi/dist",
+  "scripts": {
+    "build": "./build-dist.coffee",
+    "test": "./test/test-all.coffee"
+  },
+  "dependencies": {
+    "express": ">=4.12.4",
+    "body-parser": ">=1.13.1"
+  },
+  "devDependencies": {
+    "coffee-script": ">=1.9.3",
+    "coffeelint": ">=1.10.1",
+    "uglify-js": ">=2.4.23",
+    "chai": ">=3.0.0",
+    "mocha": ">=2.2.5",
+    "randomstring": ">=1.0.6"
+  },
+  "engines": {
+    "node": ">=0.12.4"
+  },
+  "private": true
+}
