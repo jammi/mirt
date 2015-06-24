@@ -36,25 +36,36 @@ Example session key exchange:
 An example session key exchange sequence could look like this:
 
 **Request 1:**
+```
     POST /hello
     ["0:2:Sf547oo4OIl5F3zPIz3rghJ74IuPSEk1dFS6TUWC",{},[]]
+```
 **Response 1:**
+```
     200
     ["0:2:3zBhDQXR9fRW0AQHKDDXaK6taZEBKb7LOj3dHUst",{},[]]
+```
 
 **Request 2:**
+```
     POST /x
     ["1:2:20f2770df5a84bd45e61c953f62d948cb91bb1ff",{},[]]
+```
 **Response 2:**
+```
     200
     ["1:2:r5aVFiBd9MW37FlyvKQT5b4Dm1q3gHkmDwlNZRHv",{},[]]
-
+```
 **Request 3:**
+```
     POST /x
     ["2:2:e6d81f847a79b550fc7ca7c0ce4cd74299333133",{},[]]
+```
 **Response 3:**
+```
     200
     ["2:2:0dHzEWPIOZHZ4mI1xs8aw2Mg4xRPReZsq18Ob7kd",{},[]]
+```
 
 ..and so forth. Both the `values` and  and `messages` can be empty containers, but they cannot be omitted.
 
@@ -77,6 +88,7 @@ The `values` part of the package is intended for exchanging data between client 
 
 Here is an example of a combination, with the entire protocol package. Client and server are equal in version 2. In version 1, the client could only `set` values.
 
+```json
     [
       "59:2:z2bj2IqOIHP8YQyPVlcBnG8aNjCm2SbdcRY7cogU", {
         "new": [
@@ -101,6 +113,7 @@ Here is an example of a combination, with the entire protocol package. Client an
       },
       [{"error": "Client doesn't support WebGL", "target": "spacegame.status"}]
     ]
+```
 
 A good convention is to handle `new` first, then `set` and last `del`. Future versions of MIRT will implement more verbs, which should be taken into consideration if you implement your own.
 
