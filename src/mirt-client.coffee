@@ -13,17 +13,37 @@ digest = (->
 
 {generate: genRandomString} = require 'randomstring'
 
-module.exports = (config) ->
+module.exports = (config, values) ->
 
-  unless config?
-    config =
-      host: 'localhost'
-      port: 8001
-      path: '/'
+  config = {} unless config?
+
+  config.host = 'localhost' unless config.host?
+  config.port = 8001 unless config.port?
+  config.path = '/' unless config.path?
+  config.pollThrottle = 100 unless config.pollThrottle?
+  config.idlePoll = 5000 unless config.idlePoll?
 
   session =
     seq: 0
     key: genRandomString(40)
+    values: {}
+    valueSync: {'new': [], 'set': [], 'del': []}
+
+  willPoll = true # initially true, to complete post -> x quickly
+  pollSoon = ->
+    # console.log 'pollSoon'
+    willPoll = true
+
+  unless values?
+    values = require('./mirt-values')({
+      anyListeners:
+        'new': [pollSoon]
+        'set': [pollSoon]
+        'del': [pollSoon]
+      initValues: [
+        # ['client.hello', 'Hi, says client!']
+      ]
+    })
 
   getPath = ->
     if session.seq is 0
@@ -31,28 +51,36 @@ module.exports = (config) ->
     else
       "#{config.path}x"
 
+  formatKey = (seq, key) ->
+    "#{seq.toString(36)}:2:#{key}"
+
+  valuesIn = {}
+
   syncReq = ->
     new Promise (resolve, reject) ->
-      sesKey = "#{session.seq.toString(36)}:2:#{session.key}"
-      data = [sesKey, {}, []]
-      strData = JSON.stringify(data)
-      opts =
-        hostname: config.host
-        port: config.port
-        path: getPath()
-        method: 'POST'
-        headers:
-          'Content-Type': 'application/json'
-          'Content-Length': strData.length
-      console.log "POST #{opts.path}"
-      console.log "req: #{strData}"
-      req = http.request opts, (res) ->
-        res.setEncoding('utf8')
-        res.on('data', resolve)
-        res.on('error', reject)
-      req.write(strData)
-      req.end()
-      req.on('error', reject)
+      try
+        values.initDefaults(session) if session.seq is 0
+        data = [formatKey(session.seq, session.key), values.syncOut(session, valuesIn), []]
+        strData = JSON.stringify(data)
+        opts =
+          hostname: config.host
+          port: config.port
+          path: getPath()
+          method: 'POST'
+          headers:
+            'Content-Type': 'application/json; charset=utf-8'
+            'Content-Length': Buffer.byteLength(strData, 'utf8')
+        console.log "POST #{opts.path}"
+        console.log "req: #{strData}"
+        req = http.request opts, (res) ->
+          res.setEncoding('utf8')
+          res.on('data', resolve)
+          res.on('error', reject)
+        req.write(strData)
+        req.end()
+        req.on('error', reject)
+      catch err
+        reject(err)
 
   errorLog = (err) ->
     console.error 'error:', err
@@ -61,11 +89,15 @@ module.exports = (config) ->
     session.key = digest(key, session.key)
     session.seq += 1
 
+  stopClient = false
+  stop = -> stopClient = true
+  start = -> stopClient = false
+
   sync = ->
     syncReq()
       .then (res) ->
         console.log "res: #{res}\n"
-        [keyRaw, valuesIn, dataIn] = JSON.parse(res)
+        [keyRaw, valuesIn, messagesIn] = JSON.parse(res)
         splitKey = keyRaw.split(':')
         if splitKey.length isnt 3
           errorLog('Invalid session Key')
@@ -74,9 +106,14 @@ module.exports = (config) ->
           if ver isnt '1' and ver isnt '2'
             errorLog('Unsupported Version')
           else
+            values.syncIn(session, valuesIn)
             incrementKey(key)
-            setTimeout(sync, 1000)
+            unless stopClient
+              setTimeout ->
+                willPoll = false
+                sync()
+              , if willPoll then config.pollThrottle else config.idlePoll
       .catch (err) ->
         errorLog(err)
 
-  {sync}
+  {sync, stop, start}

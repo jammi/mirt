@@ -11,6 +11,7 @@ printLint = (fileName, lintResults) ->
 
 for [fileName, destFile] in [
     ['src/mirt.coffee', 'lib/mirt/mirt.js']
+    ['src/mirt-values.coffee', 'lib/mirt/mirt-values.js']
     ['src/mirt-client.coffee', 'lib/mirt/mirt-client.js']
     ['src/mirt-post.coffee', 'lib/mirt/mirt-post.js']
     ['src/mirt-session.coffee', 'lib/mirt/mirt-session.js']

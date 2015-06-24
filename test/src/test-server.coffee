@@ -16,7 +16,12 @@ init = (host, port) ->
     console.log "MIRT test server listening at http://#{host}:#{port}"
 
   client = require '../lib/mirt/mirt-client'
-  testClient = client({host, port, path: '/'})
-  testClient.sync()
+  setTimeout(
+    ->
+      console.log '\n---starting client---\n'
+      testClient = client({host, port, path: '/'})
+      testClient.sync()
+    , 2000
+  )
 
 init('127.0.0.1', 8001)

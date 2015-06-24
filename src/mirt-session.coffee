@@ -32,6 +32,8 @@ module.exports = (config) ->
   expiration = (seconds=config.timeout) ->
     Math.floor(now() + seconds * 1000)
 
+  formatKey = (seq, key) -> "#{seq.toString(36)}:2:#{key}"
+
   createSession = (seed=genRandomString(24)) ->
     sessionId = newSessionId()
     clientKey = newKey()
@@ -41,9 +43,11 @@ module.exports = (config) ->
       key: key
       seq: 0
       expires: expiration(config.timeoutFirst)
+      values: {}
+      valueSync: {'new': [], 'set': [], 'del': []}
     sessions[sessionId] = session
     sessionKeys[key] = sessionId
-    ["#{session.seq.toString(36)}:2:#{clientKey}", session]
+    [formatKey(session.seq, clientKey), session]
 
   validateSession = (oldKey) ->
     sessionId = sessionKeys[oldKey]
@@ -58,7 +62,7 @@ module.exports = (config) ->
       key = digest(clientKey, oldKey)
       session.key = key
       sessionKeys[key] = sessionId
-      ["#{session.seq.toString(36)}:2:#{clientKey}", session]
+      [formatKey(session.seq, clientKey), session]
 
   auth = (keyRaw) ->
     splitKey = keyRaw.split(':')

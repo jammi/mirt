@@ -2,15 +2,14 @@
 
 mirtPOST = require './mirt-post'
 mirtSession = require './mirt-session'
-
-valueManager = ->
-  sync: (session, values) ->
-    # console.log('session:', session)
-    # console.log('values:', values)
-    {}
+mirtValues = require './mirt-values'
 
 module.exports =
   post: mirtPOST(
     mirtSession().auth,
-    valueManager().sync
+    mirtValues({
+      initValues: [
+        # ['server.hello', 'Hi, says server!']
+      ]
+    }).syncServer
   ).post
